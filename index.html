@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConeClock - Progress Clocks</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            min-height: 100vh;
+            padding: 10px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 320px;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            z-index: 999;
+            transform-origin: bottom right;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .controls.collapsed {
+            opacity: 0;
+            transform: scale(0.1);
+            pointer-events: none;
+        }
+
+        .floating-add-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .floating-add-btn:hover {
+            background: #5a67d8;
+            transform: scale(1.1);
+        }
+
+        .floating-add-btn.visible {
+            display: flex;
+        }
+        
+        .color-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .color-input-wrapper input[type="color"] {
+            width: 60px;
+            height: 40px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0;
+            cursor: pointer;
+        }
+        
+        .color-input-wrapper input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        
+        .color-input-wrapper input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 6px;
+        }
+
+        .controls h2 {
+            margin-bottom: 20px;
+            color: #4a5568;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        input[type="text"], input[type="number"], input[type="color"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, input[type="color"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .clock-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .clock-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .clock-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .clock-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #4a5568;
+        }
+
+        .clock-svg {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px;
+            display: block;
+        }
+
+        .clock-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #718096;
+        }
+
+        .level-counter {
+            background: #f7fafc;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #4a5568;
+        }
+
+        .clock-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .control-btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 20px;
+            min-width: 40px;
+        }
+
+        .increment-btn {
+            background: #48bb78;
+        }
+
+        .increment-btn:hover {
+            background: #38a169;
+        }
+
+        .decrement-btn {
+            background: #f56565;
+        }
+
+        .decrement-btn:hover {
+            background: #e53e3e;
+        }
+
+        .delete-btn {
+            background: #a0aec0;
+            margin-top: 10px;
+        }
+
+        .delete-btn:hover {
+            background: #718096;
+        }
+
+        @media (max-width: 768px) {
+            .clock-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .clock-svg {
+                width: 150px;
+                height: 150px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .controls {
+                width: 280px;
+                right: 10px;
+                bottom: 80px;
+            }
+            
+            .floating-add-btn {
+                right: 10px;
+                bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🕐 ConeClock</h1>
+        
+        <div id="clockGrid" class="clock-grid"></div>
+    </div>
+    
+    <div class="controls collapsed" id="controlsPanel">
+        <h2>Create New Clock</h2>
+        <div class="form-group">
+            <label for="clockName">Clock Name:</label>
+            <input type="text" id="clockName" placeholder="Enter clock name">
+        </div>
+        <div class="form-group">
+            <label for="segments">Number of Segments:</label>
+            <input type="number" id="segments" min="2" max="24" value="6">
+        </div>
+        <div class="form-group">
+            <label for="fillColor">Fill Color:</label>
+            <div class="color-input-wrapper">
+                <input type="color" id="fillColor" value="#ff0000">
+            </div>
+        </div>
+        <button onclick="createClock()">Create Clock</button>
+    </div>
+
+    <button class="floating-add-btn visible" id="floatingAddBtn" onclick="toggleControls()">+</button>
+
+    <script>
+        let clocks = [];
+        let nextId = 1;
+
+        function createClock() {
+            const name = document.getElementById('clockName').value.trim();
+            const segments = parseInt(document.getElementById('segments').value);
+            const fillColor = document.getElementById('fillColor').value;
+
+            if (!name) {
+                alert('Please enter a clock name');
+                return;
+            }
+
+            if (segments < 2 || segments > 24) {
+                alert('Number of segments must be between 2 and 24');
+                return;
+            }
+
+            const clock = {
+                id: nextId++,
+                name: name,
+                segments: segments,
+                filled: 0,
+                fillColor: fillColor,
+                level: 0
+            };
+
+            clocks.push(clock);
+            renderClocks();
+        }
+
+        function renderClocks() {
+            const grid = document.getElementById('clockGrid');
+            grid.innerHTML = '';
+
+            clocks.forEach(clock => {
+                const clockCard = document.createElement('div');
+                clockCard.className = 'clock-card';
+                clockCard.innerHTML = `
+                    <div class="clock-title">${clock.name}</div>
+                    <svg class="clock-svg" viewBox="0 0 200 200">
+                        ${generateClockSVG(clock)}
+                    </svg>
+                    <div class="clock-info">
+                        <span>Filled: ${clock.filled}/${clock.segments}</span>
+                        <span class="level-counter">Level: ${clock.level}</span>
+                    </div>
+                    <div class="clock-controls">
+                        <button class="control-btn decrement-btn" onclick="decrementClock(${clock.id})">-</button>
+                        <button class="control-btn increment-btn" onclick="incrementClock(${clock.id})">+</button>
+                    </div>
+                    <button class="control-btn delete-btn" onclick="deleteClock(${clock.id})">Delete</button>
+                `;
+                grid.appendChild(clockCard);
+            });
+        }
+
+        function generateClockSVG(clock) {
+            const centerX = 100;
+            const centerY = 100;
+            const radius = 80;
+            const angleStep = (2 * Math.PI) / clock.segments;
+            
+            let svg = '';
+            
+            for (let i = 0; i < clock.segments; i++) {
+                const startAngle = i * angleStep - Math.PI / 2;
+                const endAngle = (i + 1) * angleStep - Math.PI / 2;
+                
+                const x1 = centerX + radius * Math.cos(startAngle);
+                const y1 = centerY + radius * Math.sin(startAngle);
+                const x2 = centerX + radius * Math.cos(endAngle);
+                const y2 = centerY + radius * Math.sin(endAngle);
+                
+                const largeArcFlag = angleStep > Math.PI ? 1 : 0;
+                
+                const fillColor = i < clock.filled ? clock.fillColor : '#f7fafc';
+                const strokeColor = '#e2e8f0';
+                
+                svg += `
+                    <path d="M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2} Z" 
+                          fill="${fillColor}" 
+                          stroke="${strokeColor}" 
+                          stroke-width="2"/>
+                `;
+            }
+            
+            return svg;
+        }
+
+        function incrementClock(id) {
+            const clock = clocks.find(c => c.id === id);
+            if (!clock) return;
+
+            if (clock.filled < clock.segments) {
+                clock.filled++;
+            } else {
+                clock.level++;
+                clock.filled = 0;
+            }
+            
+            renderClocks();
+        }
+
+        function decrementClock(id) {
+            const clock = clocks.find(c => c.id === id);
+            if (!clock) return;
+
+            if (clock.filled > 0) {
+                clock.filled--;
+            } else if (clock.level > 0) {
+                clock.level--;
+                clock.filled = clock.segments;
+            }
+            
+            renderClocks();
+        }
+
+        function deleteClock(id) {
+            clocks = clocks.filter(c => c.id !== id);
+            renderClocks();
+        }
+
+        function toggleControls() {
+            const controlsPanel = document.getElementById('controlsPanel');
+            const floatingBtn = document.getElementById('floatingAddBtn');
+            
+            if (controlsPanel.classList.contains('collapsed')) {
+                controlsPanel.classList.remove('collapsed');
+                floatingBtn.innerHTML = '▼';
+                setTimeout(() => {
+                    document.getElementById('clockName').focus();
+                }, 300);
+            } else {
+                controlsPanel.classList.add('collapsed');
+                floatingBtn.innerHTML = '+';
+                clearFormFields();
+            }
+        }
+        
+        function hideControlsPanel() {
+            const controlsPanel = document.getElementById('controlsPanel');
+            const floatingBtn = document.getElementById('floatingAddBtn');
+            
+            controlsPanel.classList.add('collapsed');
+            floatingBtn.innerHTML = '+';
+            clearFormFields();
+        }
+        
+        function clearFormFields() {
+            document.getElementById('clockName').value = '';
+            document.getElementById('segments').value = '6';
+            document.getElementById('fillColor').value = '#ff0000';
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && (e.target.id === 'clockName' || e.target.id === 'segments' || e.target.id === 'fillColor')) {
+                createClock();
+            }
+        });
+    </script>
+</body>
+</html>
