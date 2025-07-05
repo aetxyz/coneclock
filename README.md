@@ -38,7 +38,7 @@ ConeClock helps Game Masters track ongoing situations, complex obstacles, and de
 
 - Pure HTML/CSS/JavaScript - no dependencies
 - Works offline once loaded
-- Progress is lost when you refresh (intentional for session-based use)
+- State is saved in browser local storage
 
 ## License
 

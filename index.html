@@ -324,6 +324,24 @@
         let clocks = [];
         let nextId = 1;
 
+        function saveState() {
+            const state = {
+                clocks: clocks,
+                nextId: nextId
+            };
+            localStorage.setItem('coneclock-state', JSON.stringify(state));
+        }
+
+        function loadState() {
+            const savedState = localStorage.getItem('coneclock-state');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                clocks = state.clocks || [];
+                nextId = state.nextId || 1;
+                renderClocks();
+            }
+        }
+
         function createClock() {
             const name = document.getElementById('clockName').value.trim();
             const segments = parseInt(document.getElementById('segments').value);
@@ -350,6 +368,7 @@
 
             clocks.push(clock);
             renderClocks();
+            saveState();
         }
 
         function renderClocks() {
@@ -431,6 +450,7 @@
             }
             
             renderClocks();
+            saveState();
         }
 
         function decrementClock(id) {
@@ -445,11 +465,13 @@
             }
             
             renderClocks();
+            saveState();
         }
 
         function deleteClock(id) {
             clocks = clocks.filter(c => c.id !== id);
             renderClocks();
+            saveState();
         }
 
         function toggleControls() {
@@ -489,6 +511,8 @@
                 createClock();
             }
         });
+
+        loadState();
     </script>
 </body>
 </html>
