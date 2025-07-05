@@ -161,6 +161,18 @@
             margin-top: 30px;
         }
 
+        .clock-grid.single-clock {
+            grid-template-columns: 1fr;
+            height: calc(100vh - 120px);
+            align-items: center;
+        }
+
+        .clock-grid.two-clocks {
+            grid-template-columns: 1fr 1fr;
+            height: calc(100vh - 120px);
+            align-items: center;
+        }
+
         .clock-card {
             background: white;
             border-radius: 15px;
@@ -186,6 +198,16 @@
             height: 200px;
             margin: 0 auto 20px;
             display: block;
+        }
+
+        .single-clock .clock-svg {
+            width: 400px;
+            height: 400px;
+        }
+
+        .two-clocks .clock-svg {
+            width: 300px;
+            height: 300px;
         }
 
         .clock-info {
@@ -333,6 +355,14 @@
         function renderClocks() {
             const grid = document.getElementById('clockGrid');
             grid.innerHTML = '';
+
+            // Apply appropriate grid class based on clock count
+            grid.className = 'clock-grid';
+            if (clocks.length === 1) {
+                grid.className += ' single-clock';
+            } else if (clocks.length === 2) {
+                grid.className += ' two-clocks';
+            }
 
             clocks.forEach(clock => {
                 const clockCard = document.createElement('div');
